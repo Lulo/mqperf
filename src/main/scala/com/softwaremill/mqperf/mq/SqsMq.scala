@@ -11,21 +11,23 @@ import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
 import com.amazonaws.regions.{Region, Regions}
 
 class SqsMq(configMap: Map[String, String]) extends Mq {
-  private val asyncClient = {
-    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 5,Executors.newFixedThreadPool(5))
-    c.setRegion(Region.getRegion(Regions.US_EAST_1))
-    c
+
+  private val asyncBufferedClient = new ThreadLocal[AmazonSQSBufferedAsyncClient](){
+    override def initialValue(): AmazonSQSBufferedAsyncClient = {
+      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 3,Executors.newFixedThreadPool(1))
+      c.setRegion(Region.getRegion(Regions.US_EAST_1))
+      c
+      new AmazonSQSBufferedAsyncClient(c)
+    }
   }
 
-  private val asyncBufferedClient = new AmazonSQSBufferedAsyncClient(asyncClient)
-
-  private val queueUrl = asyncClient.createQueue("mqperf-test-queue").getQueueUrl
+  private val queueUrl = asyncBufferedClient.get().createQueue("mqperf-test-queue").getQueueUrl
 
   override type MsgId = String
 
   override def createSender() = new MqSender {
     override def send(msgs: List[String]) = {
-      asyncClient.sendMessageBatch(queueUrl,
+      asyncBufferedClient.get().sendMessageBatch(queueUrl,
         msgs.zipWithIndex.map { case (m, i) => new SendMessageBatchRequestEntry(i.toString, m)}.asJava
       )
     }
@@ -33,7 +35,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
 
   override def createReceiver() = new MqReceiver {
     override def receive(maxMsgCount: Int) = {
-      asyncBufferedClient
+      asyncBufferedClient.get()
         .receiveMessage(new ReceiveMessageRequest(queueUrl).withMaxNumberOfMessages(maxMsgCount))
         .getMessages
         .asScala
@@ -42,7 +44,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
     }
 
     override def ack(ids: List[MsgId]) = {
-      ids.foreach { id => asyncBufferedClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, id))}
+      ids.foreach { id => asyncBufferedClient.get().deleteMessageAsync(new DeleteMessageRequest(queueUrl, id))}
     }
   }
 }
