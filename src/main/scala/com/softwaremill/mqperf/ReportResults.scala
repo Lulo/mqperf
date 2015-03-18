@@ -6,8 +6,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import com.softwaremill.mqperf.util.Retry._
 
-class ReportResults(testConfigName: String) extends DynamoResultsTable {
+class ReportResults(testConfigName: String) {
 
+  protected val typeSend = "s"
+  protected val typeReceive = "r"
   def reportSendingComplete(start: Long, end: Long, msgsSent: Int) {
     tryDoReport(start, end, msgsSent, typeSend)
   }
@@ -30,17 +32,6 @@ class ReportResults(testConfigName: String) extends DynamoResultsTable {
     val startStr = new Date(start)
     val endStr = new Date(end)
 
-    dynamoClient.putItem(new PutItemRequest()
-      .withTableName(tableName)
-      .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
-      .addItemEntry(msgsCountColumn, new AttributeValue().withN(msgsCount.toString))
-      .addItemEntry(tookColumn, new AttributeValue().withN(took))
-      .addItemEntry(startColumn, new AttributeValue(df.format(startStr)))
-      .addItemEntry(endColumn, new AttributeValue(df.format(endStr)))
-      .addItemEntry(typeColumn, new AttributeValue(_type))
-    )
-
-    println("Wrote to dynamo")
     println(s"$testResultName (${_type}, ${msgsCount.toString}): $took ($startStr -> $endStr")
   }
 

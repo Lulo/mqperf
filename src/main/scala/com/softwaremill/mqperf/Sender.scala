@@ -1,11 +1,22 @@
 package com.softwaremill.mqperf
 
+import com.softwaremill.mqperf.config.TestConfig
 import com.softwaremill.mqperf.mq.Mq
+
 import scala.util.Random
-import com.softwaremill.mqperf.config.TestConfigOnS3
 
 object Sender extends App {
-  new TestConfigOnS3().whenChanged { testConfig =>
+  val numThreads = 0
+   val testConfig =  TestConfig(
+     name=s"sqs-$numThreads",
+     mqType = "Sqs",
+     senderThreads = 25,
+     msgCountPerThread =10000,
+     msgSize =50,
+     maxSendMsgBatchSize = 10,
+     receiverThreads = numThreads,
+     receiveMsgBatchSize = 10,
+     mqConfigMap = Map.empty)
     println(s"Starting test (sender) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)
@@ -25,7 +36,7 @@ object Sender extends App {
     threads.foreach(_.join())
 
     mq.close()
-  }
+
 }
 
 class SenderRunnable(mq: Mq, reportResults: ReportResults,

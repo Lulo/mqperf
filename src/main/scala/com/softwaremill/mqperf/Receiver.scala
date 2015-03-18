@@ -1,10 +1,22 @@
 package com.softwaremill.mqperf
 
-import com.softwaremill.mqperf.config.TestConfigOnS3
+import com.softwaremill.mqperf.config.TestConfig
 import com.softwaremill.mqperf.mq.Mq
 
 object Receiver extends App {
-  new TestConfigOnS3().whenChanged { testConfig =>
+  def testConfigWithThreads(numThreads:Int) = TestConfig(
+                         name=s"sqs-$numThreads",
+                         mqType = "Sqs",
+                         senderThreads = 0,
+                         msgCountPerThread =0,
+                         msgSize =50,
+                         maxSendMsgBatchSize = 0,
+                         receiverThreads = numThreads,
+                         receiveMsgBatchSize = 10,
+                         mqConfigMap = Map.empty)
+
+  for (numThreads <- Seq(1,10,25,50)) {
+    val testConfig = testConfigWithThreads(numThreads)
     println(s"Starting test (receiver) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)
