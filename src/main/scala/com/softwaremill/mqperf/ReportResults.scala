@@ -35,7 +35,7 @@ class ReportResults(testConfigName: String) {
     val startStr = new Date(start)
     val endStr = new Date(end)
 
-    println(s"$testResultName (${_type}, $msgsCount): $took       total:${total.addAndGet(msgsCount) / took}/sec")
+    println(s"$testResultName (${_type}, $msgsCount): $took       total:${total.addAndGet(msgsCount).toDouble / took}/sec")
   }
 
   private def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
