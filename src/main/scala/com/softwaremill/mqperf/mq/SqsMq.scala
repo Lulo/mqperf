@@ -12,7 +12,7 @@ import com.amazonaws.regions.{Region, Regions}
 
 class SqsMq(configMap: Map[String, String]) extends Mq {
   private val asyncClient = {
-    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 1,Executors.newFixedThreadPool(1))
+    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 5,Executors.newFixedThreadPool(5))
     c.setRegion(Region.getRegion(Regions.US_EAST_1))
     c
   }
