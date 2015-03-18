@@ -1,5 +1,8 @@
 package com.softwaremill.mqperf.mq
 
+import java.util.concurrent.Executors
+
+import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import scala.collection.JavaConverters._
@@ -9,7 +12,7 @@ import com.amazonaws.regions.{Region, Regions}
 
 class SqsMq(configMap: Map[String, String]) extends Mq {
   private val asyncClient = {
-    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv())
+    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 250,Executors.newFixedThreadPool(250))
     c.setRegion(Region.getRegion(Regions.US_EAST_1))
     c
   }

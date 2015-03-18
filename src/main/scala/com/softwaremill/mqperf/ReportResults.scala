@@ -1,5 +1,7 @@
 package com.softwaremill.mqperf
 
+import java.util.concurrent.atomic.AtomicLong
+
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import scala.util.Random
 import java.text.SimpleDateFormat
@@ -10,6 +12,7 @@ class ReportResults(testConfigName: String) {
 
   protected val typeSend = "s"
   protected val typeReceive = "r"
+  val total = new AtomicLong()
   def reportSendingComplete(start: Long, end: Long, msgsSent: Int) {
     tryDoReport(start, end, msgsSent, typeSend)
   }
@@ -32,7 +35,7 @@ class ReportResults(testConfigName: String) {
     val startStr = new Date(start)
     val endStr = new Date(end)
 
-    println(s"$testResultName (${_type}, $msgsCount): $took")
+    println(s"$testResultName (${_type}, $msgsCount): $took total:${total.addAndGet(msgsCount)}")
   }
 
   private def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
