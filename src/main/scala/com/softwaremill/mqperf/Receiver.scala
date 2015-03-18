@@ -47,20 +47,14 @@ class ReceiverRunnable(
     val mqReceiver = mq.createReceiver()
 
     val start = System.currentTimeMillis()
-    var lastReceived = System.currentTimeMillis()
     var totalReceived = 0
 
-    while ((System.currentTimeMillis() - lastReceived) < 60*1000L) {
+    while ((System.currentTimeMillis() - start) < 60*1000L) {
       val received = doReceive(mqReceiver)
-
-      if (received > 0) {
-        lastReceived = System.currentTimeMillis()
-      }
-
       totalReceived += received
     }
 
-    reportResults.reportReceivingComplete(start, lastReceived, totalReceived)
+    reportResults.reportReceivingComplete(start, System.currentTimeMillis(), totalReceived)
     mqReceiver.close()
   }
 
