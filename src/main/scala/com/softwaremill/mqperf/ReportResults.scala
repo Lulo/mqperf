@@ -31,11 +31,11 @@ class ReportResults(testConfigName: String) {
     val df = newDateFormat
 
     val testResultName = s"$testConfigName-${_type}-${Random.nextInt(100000)}"
-    val took = (end - start).toString
+    val took = end - start
     val startStr = new Date(start)
     val endStr = new Date(end)
 
-    println(s"$testResultName (${_type}, $msgsCount): $took total:${total.addAndGet(msgsCount)}")
+    println(s"$testResultName (${_type}, $msgsCount): $took total:${total.addAndGet(msgsCount) / took}")
   }
 
   private def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
