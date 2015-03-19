@@ -11,7 +11,6 @@ object Sender extends App {
      name=s"sqs-$numThreads",
      mqType = "Sqs",
      senderThreads = 50,
-     msgCountPerThread =10000,
      msgSize =50,
      maxSendMsgBatchSize = 10,
      receiverThreads = numThreads,
@@ -24,7 +23,7 @@ object Sender extends App {
     val sr = new SenderRunnable(
       mq, report,
       "0" * testConfig.msgSize,
-      testConfig.msgCountPerThread, testConfig.maxSendMsgBatchSize
+      testConfig.maxSendMsgBatchSize
     )
 
     val threads = (1 to testConfig.senderThreads).map { _ =>
@@ -40,23 +39,25 @@ object Sender extends App {
 }
 
 class SenderRunnable(mq: Mq, reportResults: ReportResults,
-  msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable {
+  msg: String, maxSendMsgBatchSize: Int) extends Runnable {
 
   override def run() = {
     val mqSender = mq.createSender()
     val start = System.currentTimeMillis()
-    doSend(mqSender)
+    var totalSent = 0
+
+    while ((System.currentTimeMillis() - start) < 60*1000L) {
+      val received = doSend(mqSender)
+      totalSent += received
+    }
+
     val end = System.currentTimeMillis()
-    reportResults.reportSendingComplete(start, end, msgCount)
+    reportResults.reportSendingComplete(start, end, totalSent)
     mqSender.close()
   }
 
-  private def doSend(mqSender: mq.MqSender) {
-    var leftToSend = msgCount
-    while (leftToSend > 0) {
-      val batchSize = math.min(leftToSend, Random.nextInt(maxSendMsgBatchSize) + 1)
-      mqSender.send(List.fill(batchSize)(msg))
-      leftToSend -= batchSize
-    }
+  private def doSend(mqSender: mq.MqSender)= {
+    mqSender.send(List.fill(maxSendMsgBatchSize)(msg))
+    maxSendMsgBatchSize
   }
 }

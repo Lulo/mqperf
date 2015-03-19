@@ -8,7 +8,6 @@ object Receiver extends App {
                          name=s"sqs-$numThreads",
                          mqType = "Sqs",
                          senderThreads = 0,
-                         msgCountPerThread =0,
                          msgSize =50,
                          maxSendMsgBatchSize = 0,
                          receiverThreads = numThreads,
