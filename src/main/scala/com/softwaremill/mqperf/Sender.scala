@@ -6,16 +6,16 @@ import com.softwaremill.mqperf.mq.Mq
 import scala.util.Random
 
 object Sender extends App {
-  val numThreads = 0
-   val testConfig =  TestConfig(
-     name=s"sqs-$numThreads",
-     mqType = "Sqs",
-     senderThreads = 75,
-     msgSize =50,
-     maxSendMsgBatchSize = 10,
-     receiverThreads = numThreads,
-     receiveMsgBatchSize = 10,
-     mqConfigMap = Map.empty)
+  for (numThreads <- Seq(20,50,75)) {
+    val testConfig =  TestConfig(
+      name=s"sqs-$numThreads",
+      mqType = "Sqs",
+      senderThreads = 75,
+      msgSize =50,
+      maxSendMsgBatchSize = 10,
+      receiverThreads = numThreads,
+      receiveMsgBatchSize = 10,
+      mqConfigMap = Map.empty)
     println(s"Starting test (sender) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)
@@ -35,7 +35,7 @@ object Sender extends App {
     threads.foreach(_.join())
 
     mq.close()
-
+  }
 }
 
 class SenderRunnable(mq: Mq, reportResults: ReportResults,
@@ -57,7 +57,6 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults,
   }
 
   private def doSend(mqSender: mq.MqSender)= {
-    mqSender.send(List.fill(maxSendMsgBatchSize)(msg))
-    maxSendMsgBatchSize
+    mqSender.send(msg)
   }
 }

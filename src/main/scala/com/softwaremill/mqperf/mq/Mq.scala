@@ -9,7 +9,7 @@ trait Mq {
     /**
      * Synchronous - must wait for the messages to be sent
      */
-    def send(msgs: List[String])
+    def send(msg: String):Int
 
     def close() {}
   }
