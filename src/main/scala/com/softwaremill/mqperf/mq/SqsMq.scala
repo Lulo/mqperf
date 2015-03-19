@@ -14,9 +14,14 @@ import com.amazonaws.regions.{Region, Regions}
 class SqsMq(configMap: Map[String, String]) extends Mq {
   def asyncClient = asyncBufferedClient
 
-  val asyncBufferedClient =
-  //createClient()
+  def asyncBufferedClient =
     asyncBufferedClientVal.get()
+
+/*
+
+  val asyncBufferedClient =
+   createClient()
+*/
 
   def createClient() = {
     val asyncClient = {
