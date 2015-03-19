@@ -29,7 +29,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
       c
     }
     new AmazonSQSBufferedAsyncClient(asyncClient,
-    new QueueBufferConfig(200L, 5, 50, 50, true, 262143L, -1, 20, 10)
+    new QueueBufferConfig(200L, 5, 30, 30, true, 262143L, -1, 20, 10)
     )
   }
 
