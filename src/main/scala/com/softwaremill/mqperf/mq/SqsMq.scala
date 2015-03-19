@@ -11,20 +11,21 @@ import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
 import com.amazonaws.regions.{Region, Regions}
 
 class SqsMq(configMap: Map[String, String]) extends Mq {
+  private val asyncClient = {
+    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 100,Executors.newFixedThreadPool(100))
+    c.setRegion(Region.getRegion(Regions.US_EAST_1))
+    c
+  }
 
-  private val asyncBufferedClient =  {
-      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 100,Executors.newFixedThreadPool(100))
-      c.setRegion(Region.getRegion(Regions.US_EAST_1))
-      new AmazonSQSBufferedAsyncClient(c)
-    }
+  private val asyncBufferedClient = new AmazonSQSBufferedAsyncClient(asyncClient)
 
-  private val queueUrl = asyncBufferedClient.createQueue("mqperf-test-queue").getQueueUrl
+  private val queueUrl = asyncClient.createQueue("mqperf-test-queue").getQueueUrl
 
   override type MsgId = String
 
   override def createSender() = new MqSender {
     override def send(msgs: List[String]) = {
-      asyncBufferedClient.sendMessageBatch(queueUrl,
+      asyncClient.sendMessageBatch(queueUrl,
         msgs.zipWithIndex.map { case (m, i) => new SendMessageBatchRequestEntry(i.toString, m)}.asJava
       )
     }
