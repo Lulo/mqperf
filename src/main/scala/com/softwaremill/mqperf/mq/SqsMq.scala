@@ -12,22 +12,19 @@ import com.amazonaws.regions.{Region, Regions}
 
 class SqsMq(configMap: Map[String, String]) extends Mq {
 
-  private val asyncBufferedClient = new ThreadLocal[AmazonSQSBufferedAsyncClient](){
-    override def initialValue(): AmazonSQSBufferedAsyncClient = {
-      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 3,Executors.newFixedThreadPool(1))
+  private val asyncBufferedClient =  {
+      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 100,Executors.newFixedThreadPool(100))
       c.setRegion(Region.getRegion(Regions.US_EAST_1))
-      c
       new AmazonSQSBufferedAsyncClient(c)
     }
-  }
 
-  private val queueUrl = asyncBufferedClient.get().createQueue("mqperf-test-queue").getQueueUrl
+  private val queueUrl = asyncBufferedClient.createQueue("mqperf-test-queue").getQueueUrl
 
   override type MsgId = String
 
   override def createSender() = new MqSender {
     override def send(msgs: List[String]) = {
-      asyncBufferedClient.get().sendMessageBatch(queueUrl,
+      asyncBufferedClient.sendMessageBatch(queueUrl,
         msgs.zipWithIndex.map { case (m, i) => new SendMessageBatchRequestEntry(i.toString, m)}.asJava
       )
     }
@@ -35,7 +32,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
 
   override def createReceiver() = new MqReceiver {
     override def receive(maxMsgCount: Int) = {
-      asyncBufferedClient.get()
+      asyncBufferedClient
         .receiveMessage(new ReceiveMessageRequest(queueUrl).withMaxNumberOfMessages(maxMsgCount))
         .getMessages
         .asScala
@@ -44,7 +41,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
     }
 
     override def ack(ids: List[MsgId]) = {
-      ids.foreach { id => asyncBufferedClient.get().deleteMessageAsync(new DeleteMessageRequest(queueUrl, id))}
+      ids.foreach { id => asyncBufferedClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, id))}
     }
   }
 }
