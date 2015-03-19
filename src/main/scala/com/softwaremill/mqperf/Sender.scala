@@ -10,7 +10,7 @@ object Sender extends App {
    val testConfig =  TestConfig(
      name=s"sqs-$numThreads",
      mqType = "Sqs",
-     senderThreads = 50,
+     senderThreads = 75,
      msgSize =50,
      maxSendMsgBatchSize = 10,
      receiverThreads = numThreads,
