@@ -1,5 +1,6 @@
 package com.softwaremill.mqperf.mq
 
+import java.lang.ThreadLocal
 import java.util.concurrent.Executors
 
 import com.amazonaws.ClientConfiguration
@@ -11,13 +12,22 @@ import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
 import com.amazonaws.regions.{Region, Regions}
 
 class SqsMq(configMap: Map[String, String]) extends Mq {
-  private val asyncClient = {
-    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv())
-    c.setRegion(Region.getRegion(Regions.US_EAST_1))
-    c
-  }
+  def asyncClient = asyncBufferedClient
 
-  private val asyncBufferedClient = new AmazonSQSBufferedAsyncClient(asyncClient, new QueueBufferConfig(200L, 5, 100, 100, true, 262143L, -1, 20, 10))
+  def asyncBufferedClient = asyncBufferedClientVal.get()
+
+  private val asyncBufferedClientVal = new ThreadLocal[AmazonSQSBufferedAsyncClient] {
+
+    override def initialValue(): AmazonSQSBufferedAsyncClient = {
+
+      val asyncClient = {
+        val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(),new ClientConfiguration() withMaxConnections 3, Executors.newSingleThreadExecutor())
+        c.setRegion(Region.getRegion(Regions.US_EAST_1))
+        c
+      }
+      new AmazonSQSBufferedAsyncClient(asyncClient)
+    }
+  }
 
   private val queueUrl = asyncClient.createQueue("mqperf-test-queue").getQueueUrl
 
