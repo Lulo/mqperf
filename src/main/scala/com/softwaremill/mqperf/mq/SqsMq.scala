@@ -15,8 +15,8 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
   def asyncClient = asyncBufferedClient
 
   val asyncBufferedClient =
-    createClient()
-  //asyncBufferedClientVal.get()
+  //createClient()
+    asyncBufferedClientVal.get()
 
   def createClient() = {
     val asyncClient = {
@@ -26,12 +26,11 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
     }
     new AmazonSQSBufferedAsyncClient(asyncClient)
   }
-/*
+
   private val asyncBufferedClientVal = new ThreadLocal[AmazonSQSBufferedAsyncClient] {
 
-    override def initialValue(): AmazonSQSBufferedAsyncClient = {
-    }
-  }*/
+    override def initialValue(): AmazonSQSBufferedAsyncClient = createClient()
+  }
 
   private val queueUrl = asyncClient.createQueue("mqperf-test-queue").getQueueUrl
 
