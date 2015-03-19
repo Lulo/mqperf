@@ -27,7 +27,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
     new AmazonSQSBufferedAsyncClient(asyncClient)
   }
 
-  private val asyncBufferedClientVal = new ThreadLocal[AmazonSQSBufferedAsyncClient] {
+  private lazy val asyncBufferedClientVal = new ThreadLocal[AmazonSQSBufferedAsyncClient] {
 
     override def initialValue(): AmazonSQSBufferedAsyncClient = createClient()
   }
