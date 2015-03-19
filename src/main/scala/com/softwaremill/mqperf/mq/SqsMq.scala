@@ -46,7 +46,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
 
   override def createSender() = new MqSender {
     override def send(msg: String) = {
-      syncClient.sendMessage(queueUrl, msg)
+      asyncClient.sendMessage(queueUrl, msg)
       1
     }
   }
