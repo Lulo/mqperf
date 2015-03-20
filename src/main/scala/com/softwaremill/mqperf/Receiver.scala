@@ -14,7 +14,7 @@ object Receiver extends App {
                          receiveMsgBatchSize = 10,
                          mqConfigMap = Map.empty)
 
-  for (numThreads <- Seq(10, 12, 15, 17)) {
+  for (numThreads <- Seq(12, 13, 14)) {
     val testConfig = testConfigWithThreads(numThreads)
     println(s"Starting test (receiver) with config: $testConfig")
 
