@@ -24,7 +24,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
 
   def createClient() = {
     val asyncClient = {
-      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 3, Executors.newFixedThreadPool(1))
+      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 4, Executors.newFixedThreadPool(1))
       c.setRegion(Region.getRegion(Regions.US_EAST_1))
       c
     }
