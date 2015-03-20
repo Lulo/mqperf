@@ -16,13 +16,13 @@ import scala.concurrent.Future
 class SqsMq(configMap: Map[String, String]) extends Mq {
   def asyncClient = asyncBufferedClient
 
+/*
   def asyncBufferedClient =
     asyncBufferedClientVal.get()
-/*
+*/
 
   val asyncBufferedClient =
    createClient()
-*/
 
   def createClient() = {
     /*val asyncClient = {
@@ -34,7 +34,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
     new QueueBufferConfig(200L, 5, 1000, 1000, true, 262143L, -1, 20, 10)
     )*/
     {
-      val c = new AmazonSQSClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 4)
+      val c = new AmazonSQSClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 1000)
       c.setRegion(Region.getRegion(Regions.US_EAST_1))
       c
     }
