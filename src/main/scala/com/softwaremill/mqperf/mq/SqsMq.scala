@@ -14,30 +14,28 @@ import com.amazonaws.regions.{Region, Regions}
 class SqsMq(configMap: Map[String, String]) extends Mq {
   def asyncClient = asyncBufferedClient
 
-  def asyncBufferedClient =
+  /*def asyncBufferedClient =
     asyncBufferedClientVal.get()
-/*
-
+*/
   val asyncBufferedClient =
    createClient()
-*/
 
   def createClient() = {
     val asyncClient = {
-      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 3, Executors.newSingleThreadExecutor())
+      val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv(), new ClientConfiguration() withMaxConnections 1000, Executors.newCachedThreadPool())
       c.setRegion(Region.getRegion(Regions.US_EAST_1))
       c
     }
-    new AmazonSQSBufferedAsyncClient(asyncClient /*,
-    new QueueBufferConfig(200L, 5, 30, 30, true, 262143L, -1, 20, 10)*/
+    new AmazonSQSBufferedAsyncClient(asyncClient ,
+    new QueueBufferConfig(200L, 5, 1000, 1000, true, 262143L, -1, 20, 10)
     )
   }
-
+/*
   val syncClient = new AmazonSQSClient(AWSCredentialsFromEnv())
   private lazy val asyncBufferedClientVal = new ThreadLocal[AmazonSQSBufferedAsyncClient] {
 
     override def initialValue(): AmazonSQSBufferedAsyncClient = createClient()
-  }
+  }*/
 
   private val queueUrl = asyncClient.createQueue("mqperf-test-queue").getQueueUrl
 
