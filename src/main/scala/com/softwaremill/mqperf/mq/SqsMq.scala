@@ -70,9 +70,9 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
     }
 
     override def ack(ids: List[MsgId]) = {
-      ids.foreach { id => Future {
+      /*ids.foreach { id => Future {
         asyncBufferedClient.deleteMessage(new DeleteMessageRequest(queueUrl, id))
-      }}
+      }}*/
     }
   }
 }
