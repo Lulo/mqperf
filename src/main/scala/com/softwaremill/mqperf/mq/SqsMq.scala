@@ -45,8 +45,10 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
 
   override def createSender() = new MqSender {
     override def send(msg: String) = {
-      asyncClient.sendMessage(queueUrl, msg)
-      1
+      asyncClient.sendMessageBatch(queueUrl,
+        (1 to 10).map { i => new SendMessageBatchRequestEntry(i.toString, msg)}.asJava
+      )
+      10
     }
   }
 
